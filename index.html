@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Enchanted Rose</title>
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background: #0a1628;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    /* Loader Screen */
+    .loader-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0a1628 0%, #1a2642 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      animation: fadeOutLoader 1s ease-out 3s forwards;
+    }
+
+    .loader-logo {
+      font-family: 'Georgia', serif;
+      font-size: 48px;
+      color: #ff96c0;
+      text-shadow: 0 0 30px #ff4e85;
+      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeInLogo 1s ease-out forwards, glowPulse 2s ease-in-out 1s infinite;
+    }
+
+    .loader-bar-container {
+      width: 300px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(255, 150, 192, 0.3);
+    }
+
+    .loader-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff4e85, #ff96c0, #ff4e85);
+      background-size: 200% 100%;
+      border-radius: 10px;
+      animation: loadBar 2.5s ease-in-out forwards, shimmer 1.5s linear infinite;
+      box-shadow: 0 0 15px #ff96c0;
+    }
+
+    .loader-text {
+      margin-top: 20px;
+      font-family: 'Georgia', serif;
+      font-size: 14px;
+      color: rgba(255, 150, 192, 0.7);
+      letter-spacing: 3px;
+      opacity: 0;
+      animation: fadeInText 1s ease-out 0.5s forwards;
+    }
+
+    /* Starfield Background */
+    .starfield {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0;
+      animation: fadeIn 1s ease-out 3s forwards;
+    }
+
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+
+    /* Message */
+    .message {
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Georgia', serif;
+      font-size: 32px;
+      color: #ff96c0;
+      text-shadow: 0 0 20px #ff4e85;
+      opacity: 0;
+      animation: fadeInMessage 2s ease-in 7s forwards;
+      z-index: 100;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .container {
+      width: 100px;
+      height: 300px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      transform: scale(0);
+      opacity: 0;
+      transition: transform 0.3s ease, filter 0.3s ease;
+      z-index: 10;
+      cursor: pointer;
+      animation: roseEntrance 2s ease-out 3.5s forwards;
+    }
+
+    .container:hover {
+      transform: scale(0.65) !important;
+      filter: brightness(1.2);
+    }
+
+    .container.clicked {
+      animation: pulseRose 0.5s ease;
+    }
+
+    .container div {
+      position: absolute;
+    }
+
+    .glass {
+      height: 420px;
+      width: 250px;
+      border: 3px solid rgba(255, 255, 255, 0.5);
+      border-radius: 300px 300px 0px 0px;
+      left: -80px;
+      top: -100px;
+      border-bottom: 15px solid rgba(255, 255, 255, 0.5);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    }
+
+    .glass:after {
+      width: 8px;
+      background: rgba(255, 255, 255, 0.28);
+      content: '';
+      position: absolute;
+      height: 80px;
+      border-radius: 100px;
+      left: 10px;
+      top: 180px;
+    }
+
+    .glass:before {
+      width: 8px;
+      background: rgba(255, 255, 255, 0.28);
+      content: '';
+      position: absolute;
+      height: 15px;
+      border-radius: 100px;
+      left: 10px;
+      top: 280px;
+    }
+
+    .glow {
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border-radius: 100%;
+      border: 1px solid rgba(245, 148, 184, 0.47);
+      box-shadow: 0px 0px 10px #f594b8;
+      left: -40px;
+      top: -40px;
+      transition: all 0.5s ease;
+      animation: glowing 2.5s ease-in-out infinite;
+    }
+
+    .container:hover .glow {
+      box-shadow: 0px 0px 80px #f594b8;
+      border-color: rgba(245, 148, 184, 0.8);
+    }
+
+    .rose-petals > div {
+      background: #d52d58;
+      width: 45px;
+      height: 80px;
+      position: absolute;
+      transition: all 0.5s ease-out;
+    }
+
+    .container:hover .rose-petals > div {
+      filter: hue-rotate(10deg) brightness(1.1);
+    }
+
+    .rose-petals > div:nth-child(1) {
+      border-radius: 15px;
+      left: 20px;
+      top: -6px;
+      background: #d52d58;
+      animation: colorShift 4s ease-in-out infinite;
+    }
+
+    .rose-petals > div:nth-child(2), .rose-petals > div:nth-child(4), .rose-petals > div:nth-child(6) {
+      border-radius: 0px 30px 0px 30px;
+      background: #b81b43;
+      left: 0;
+      transform-origin: bottom right;
+    }
+
+    .rose-petals > div:nth-child(3), .rose-petals > div:nth-child(5), .rose-petals > div:nth-child(7) {
+      border-radius: 30px 0px 30px 0px;
+      left: 40px;
+      transform-origin: bottom left;
+    }
+
+    .rose-petals > div:nth-child(2) {
+      animation: openRose2 3s ease-in-out 5.5s forwards, colorShift 4s ease-in-out infinite;
+      z-index: 5;
+      background: #9e183a;
+      top: 10px;
+      height: 70px;
+    }
+
+    .rose-petals > div:nth-child(3) {
+      animation: openRose3 3s ease-in-out 5.5s forwards, colorShift 4s ease-in-out 1s infinite;
+      z-index: 4;
+      background: #9e183a;
+      top: 10px;
+      height: 70px;
+    }
+
+    .rose-petals > div:nth-child(4) {
+      animation: openRose4 3s ease-in-out 5.5s forwards, colorShift 4s ease-in-out 2s infinite;
+      z-index: 3;
+      background: #b81b43;
+      top: 5px;
+      height: 75px;
+    }
+
+    .rose-petals > div:nth-child(5) {
+      animation: openRose5 3s ease-in-out 5.5s forwards, colorShift 4s ease-in-out 3s infinite;
+      z-index: 2;
+      background: #b81b43;
+      top: 5px;
+      height: 75px;
+    }
+
+    .rose-petals > div:nth-child(6) {
+      animation: openRose6 3s ease-in-out 5.5s forwards, colorShift 4s ease-in-out 1.5s infinite;
+      z-index: 1;
+      background: #c9204b;
+    }
+
+    .rose-petals > div:nth-child(7) {
+      animation: openRose7 3s ease-in-out 5.5s forwards, colorShift 4s ease-in-out 2.5s infinite;
+      z-index: 0;
+      background: #c9204b;
+    }
+
+    .rose-leaves > div:nth-last-child(1) {
+      width: 55px;
+      height: 30px;
+      background: #338f37;
+      position: absolute;
+      top: 60px;
+      left: 15px;
+      border-radius: 100px;
+    }
+
+    .rose-leaves > div:nth-child(1) {
+      width: 6px;
+      height: 230px;
+      border: none;
+      top: 80px;
+      background: #066406;
+      left: 40px;
+    }
+
+    .thorns > div {
+      width: 30px;
+      height: 30px;
+      background: #066406;
+      top: 100px;
+      left: 10px;
+    }
+
+    .thorns > div:after {
+      width: 41px;
+      height: 31px;
+      border-radius: 100%;
+      background: #0a1628;
+      content: "";
+      position: absolute;
+      left: -12px;
+      top: 17px;
+    }
+
+    .thorns > div:before {
+      width: 41px;
+      height: 31px;
+      border-radius: 100%;
+      background: #0a1628;
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: -11px;
+      z-index: 0;
+    }
+
+    .thorns > div:nth-child(2) {
+      top: 150px;
+      transform: rotate(180deg);
+      left: 45px;
+    }
+
+    .thorns > div:nth-child(3) {
+      top: 180px;
+    }
+
+    .thorns > div:nth-child(4) {
+      top: 220px;
+      transform: rotate(180deg);
+      left: 45px;
+    }
+
+    .sparkles {
+      bottom: -40px;
+    }
+
+    .sparkles > div {
+      width: 4px;
+      height: 4px;
+      border-radius: 100px;
+      background: #ff96c0;
+      box-shadow: 0px 0px 12px 2px #ff4e85;
+      bottom: 0;
+      opacity: 0;
+      animation: sparkle 4s ease-in-out infinite;
+    }
+
+    .sparkles > div:nth-child(1) { left: 60px; animation-delay: 6.5s; }
+    .sparkles > div:nth-child(2) { left: 158px; animation-delay: 5.5s; }
+    .sparkles > div:nth-child(3) { left: -22px; animation-delay: 4.5s; }
+    .sparkles > div:nth-child(4) { left: 10px; animation-delay: 4.5s; }
+    .sparkles > div:nth-child(5) { left: 177px; animation-delay: 6.5s; }
+    .sparkles > div:nth-child(6) { left: -82px; animation-delay: 5.5s; }
+    .sparkles > div:nth-child(7) { left: 45px; animation-delay: 6.5s; }
+    .sparkles > div:nth-child(8) { left: 74px; animation-delay: 6.5s; }
+    .sparkles > div:nth-child(9) { left: -79px; animation-delay: 5.5s; }
+
+    /* Falling Petals */
+    .falling-petal {
+      position: absolute;
+      width: 12px;
+      height: 18px;
+      background: #d52d58;
+      border-radius: 50% 0 50% 0;
+      opacity: 0;
+      z-index: 5;
+      animation: fall 6s ease-in infinite;
+      box-shadow: 0 0 5px rgba(213, 45, 88, 0.5);
+    }
+
+    /* Floating Particles */
+    .particle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: rgba(255, 150, 192, 0.6);
+      border-radius: 50%;
+      animation: float 8s ease-in-out infinite;
+      z-index: 8;
+    }
+
+    /* Fireflies */
+    .firefly {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #ffeb3b;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #ffeb3b;
+      animation: fireflyFloat 10s ease-in-out infinite;
+      opacity: 0;
+      z-index: 9;
+    }
+
+    /* Loader Animations */
+    @keyframes fadeOutLoader {
+      to { 
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+
+    @keyframes fadeInLogo {
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInText {
+      to { opacity: 1; }
+    }
+
+    @keyframes loadBar {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { text-shadow: 0 0 30px #ff4e85; }
+      50% { text-shadow: 0 0 60px #ff4e85, 0 0 90px #ff4e85; }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @keyframes roseEntrance {
+      0% { 
+        transform: scale(0) rotateY(180deg);
+        opacity: 0;
+      }
+      60% {
+        transform: scale(0.7) rotateY(0deg);
+      }
+      80% {
+        transform: scale(0.55) rotateY(0deg);
+      }
+      100% { 
+        transform: scale(0.6) rotateY(0deg);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeInMessage {
+      to { opacity: 1; }
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes pulseRose {
+      0%, 100% { transform: scale(0.6); }
+      50% { transform: scale(0.7); }
+    }
+
+    @keyframes sparkle {
+      50% { opacity: 1; }
+      100% { bottom: 250px; }
+    }
+
+    @keyframes openRose2 {
+      50% { transform: rotate(-90deg); top: 80px; left: 100px; }
+      100% { transform: rotate(-60deg); top: 210px; left: -30px; }
+    }
+
+    @keyframes openRose3 {
+      100% { transform: rotate(60deg); }
+    }
+
+    @keyframes openRose4 {
+      100% { transform: rotate(-30deg); }
+    }
+
+    @keyframes openRose5 {
+      100% { transform: rotate(30deg); }
+    }
+
+    @keyframes openRose6 {
+      100% { transform: rotate(-45deg); }
+    }
+
+    @keyframes openRose7 {
+      100% { transform: rotate(45deg); }
+    }
+
+    @keyframes glowing {
+      50% { box-shadow: 0px 0px 60px #f594b8; }
+    }
+
+    @keyframes colorShift {
+      0%, 100% { filter: hue-rotate(0deg); }
+      50% { filter: hue-rotate(15deg); }
+    }
+
+    @keyframes fall {
+      0% { opacity: 0.8; top: -10%; transform: translateX(0) rotate(0deg); }
+      100% { opacity: 0; top: 110%; transform: translateX(100px) rotate(360deg); }
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0); opacity: 0; }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.5; }
+      100% { transform: translate(50px, -300px); opacity: 0; }
+    }
+
+    @keyframes fireflyFloat {
+      0% { transform: translate(0, 0); opacity: 0; }
+      5% { opacity: 0.8; }
+      50% { opacity: 1; }
+      95% { opacity: 0.8; }
+      100% { transform: translate(var(--tx), var(--ty)); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loader Screen -->
+  <div class="loader-screen">
+    <div class="loader-logo">Enchanted Rose</div>
+    <div class="loader-bar-container">
+      <div class="loader-bar"></div>
+    </div>
+    <div class="loader-text">LOADING MAGIC</div>
+  </div>
+
+  <div class="starfield" id="starfield"></div>
+  
+  <div class="message">For someone special ✨</div>
+
+  <div class="container" id="rose">
+    <div class="glass"></div>
+    <div class="thorns">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="glow"></div>
+    <div class="rose-leaves">
+      <div></div>
+      <div></div>
+    </div>
+    <div class="rose-petals">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <div class="sparkles">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+
+  <script>
+    // Create starfield
+    const starfield = document.getElementById('starfield');
+    for (let i = 0; i < 100; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.width = Math.random() * 3 + 'px';
+      star.style.height = star.style.width;
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 3 + 's';
+      starfield.appendChild(star);
+    }
+
+    // Mouse tracking
+    const container = document.getElementById('rose');
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let isLoaded = false;
+
+    // Wait for rose entrance animation to complete
+    setTimeout(() => {
+      isLoaded = true;
+    }, 5500);
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isLoaded) return;
+      
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      
+      const rect = container.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      const deltaX = (mouseX - centerX) / 50;
+      const deltaY = (mouseY - centerY) / 50;
+      
+      container.style.transform = `scale(0.6) translate(${deltaX}px, ${deltaY}px)`;
+    });
+
+    // Click interaction
+    container.addEventListener('click', () => {
+      if (!isLoaded) return;
+      
+      container.classList.add('clicked');
+      setTimeout(() => container.classList.remove('clicked'), 500);
+      
+      // Create burst of sparkles on click
+      for (let i = 0; i < 10; i++) {
+        createSparkle();
+      }
+    });
+
+    // Start effects after loader
+    setTimeout(() => {
+      // Create falling petals
+      setInterval(createFallingPetal, 3000);
+      
+      // Create floating particles
+      setInterval(createParticle, 800);
+      
+      // Create fireflies
+      setInterval(createFirefly, 2000);
+    }, 4000);
+
+    function createFallingPetal() {
+      const petal = document.createElement('div');
+      petal.className = 'falling-petal';
+      petal.style.left = Math.random() * 100 + '%';
+      petal.style.animationDelay = Math.random() * 3 + 's';
+      petal.style.animationDuration = (Math.random() * 3 + 4) + 's';
+      document.body.appendChild(petal);
+      
+      setTimeout(() => petal.remove(), 7000);
+    }
+
+    function createParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = (window.innerWidth / 2 - 100 + Math.random() * 200) + 'px';
+      particle.style.bottom = '40%';
+      particle.style.animationDelay = Math.random() * 2 + 's';
+      particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+      document.body.appendChild(particle);
+      
+      setTimeout(() => particle.remove(), 10000);
+    }
+
+    function createFirefly() {
+      const firefly = document.createElement('div');
+      firefly.className = 'firefly';
+      const startX = Math.random() * window.innerWidth;
+      const startY = Math.random() * window.innerHeight;
+      firefly.style.left = startX + 'px';
+      firefly.style.top = startY + 'px';
+      firefly.style.setProperty('--tx', (Math.random() * 400 - 200) + 'px');
+      firefly.style.setProperty('--ty', (Math.random() * 400 - 200) + 'px');
+      firefly.style.animationDuration = (Math.random() * 5 + 8) + 's';
+      firefly.style.animationDelay = Math.random() * 3 + 's';
+      document.body.appendChild(firefly);
+      
+      setTimeout(() => firefly.remove(), 15000);
+    }
+
+    function createSparkle() {
+      const sparkle = document.createElement('div');
+      sparkle.className = 'particle';
+      sparkle.style.left = mouseX + 'px';
+      sparkle.style.top = mouseY + 'px';
+      sparkle.style.width = '6px';
+      sparkle.style.height = '6px';
+      sparkle.style.background = '#ff96c0';
+      sparkle.style.boxShadow = '0 0 10px #ff4e85';
+      sparkle.style.position = 'fixed';
+      sparkle.style.animation = 'float 2s ease-out forwards';
+      document.body.appendChild(sparkle);
+      
+      setTimeout(() => sparkle.remove(), 2000);
+    }
+  </script>
+</body>
+</html>
