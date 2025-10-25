@@ -2,6 +2,8 @@
 <html>
 <head>
   <title>Enchanted Rose</title>
+  <!-- Make site responsive -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     html, body {
       height: 100%;
@@ -11,6 +13,8 @@
       background: #0a1628;
       overflow: hidden;
       cursor: default;
+      /* Improve touch responsiveness on mobile */
+      touch-action: manipulation;
     }
 
     /* Loader Screen */
@@ -31,7 +35,8 @@
 
     .loader-logo {
       font-family: 'Georgia', serif;
-      font-size: 48px;
+      /* Responsive font size */
+      font-size: clamp(36px, 10vw, 48px);
       color: #ff96c0;
       text-shadow: 0 0 30px #ff4e85;
       margin-bottom: 40px;
@@ -40,7 +45,7 @@
     }
 
     .loader-bar-container {
-      width: 300px;
+      width: clamp(250px, 80vw, 300px);
       height: 4px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 10px;
@@ -61,7 +66,7 @@
     .loader-text {
       margin-top: 20px;
       font-family: 'Georgia', serif;
-      font-size: 14px;
+      font-size: clamp(12px, 3vw, 14px);
       color: rgba(255, 150, 192, 0.7);
       letter-spacing: 3px;
       opacity: 0;
@@ -94,7 +99,8 @@
       left: 50%;
       transform: translateX(-50%);
       font-family: 'Georgia', serif;
-      font-size: 32px;
+      /* Responsive font size */
+      font-size: clamp(24px, 5vw, 32px);
       color: #ff96c0;
       text-shadow: 0 0 20px #ff4e85;
       opacity: 0;
@@ -102,6 +108,7 @@
       z-index: 100;
       text-align: center;
       pointer-events: none;
+      width: 90%;
     }
 
     .container {
@@ -122,7 +129,8 @@
     }
 
     .container:hover {
-      transform: scale(0.65) !important;
+      /* Consistent hover scale */
+      transform: scale(var(--base-scale, 0.65)) !important;
       filter: brightness(1.2);
     }
 
@@ -431,13 +439,14 @@
         opacity: 0;
       }
       60% {
-        transform: scale(0.7) rotateY(0deg);
+        /* Use a responsive scale */
+        transform: scale(calc(min(0.7, 18vmin))) rotateY(0deg);
       }
       80% {
-        transform: scale(0.55) rotateY(0deg);
+        transform: scale(calc(min(0.55, 15vmin))) rotateY(0deg);
       }
       100% { 
-        transform: scale(0.6) rotateY(0deg);
+        transform: scale(calc(min(0.6, 16vmin))) rotateY(0deg);
         opacity: 1;
       }
     }
@@ -452,8 +461,8 @@
     }
 
     @keyframes pulseRose {
-      0%, 100% { transform: scale(0.6); }
-      50% { transform: scale(0.7); }
+      0%, 100% { transform: scale(var(--base-scale, 0.6)); }
+      50% { transform: scale(calc(var(--base-scale, 0.6) * 1.15)); }
     }
 
     @keyframes sparkle {
@@ -517,6 +526,8 @@
   </style>
 </head>
 <body>
+  <a href="https://www.google.com" target="_blank" style="display:inline-block;padding:12px 25px;background-color:#4285F4;color:white;text-decoration:none;border:none;border-radius:5px;font-family:Arial,sans-serif;font-size:16px;cursor:pointer;text-align:center;">Go to Google</a>
+
   <!-- Loader Screen -->
   <div class="loader-screen">
     <div class="loader-logo">Enchanted Rose</div>
@@ -529,6 +540,7 @@
   <div class="starfield" id="starfield"></div>
   
   <div class="message">For someone special ✨</div>
+
 
   <div class="container" id="rose">
     <div class="glass"></div>
@@ -569,7 +581,8 @@
   <script>
     // Create starfield
     const starfield = document.getElementById('starfield');
-    for (let i = 0; i < 100; i++) {
+    const numStars = Math.min(100, Math.floor(window.innerWidth / 20)); // Adjust star count for screen size
+    for (let i = 0; i < numStars; i++) {
       const star = document.createElement('div');
       star.className = 'star';
       star.style.width = Math.random() * 3 + 'px';
@@ -580,37 +593,68 @@
       starfield.appendChild(star);
     }
 
-    // Mouse tracking
+    // Mouse and Touch tracking
     const container = document.getElementById('rose');
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
     let isLoaded = false;
+    let baseScale = 0.6; // Default scale
+
+    function updateBaseScale() {
+        // Adjust base scale based on viewport size
+        baseScale = Math.min(0.6, 16 * (window.innerWidth / 1000)); // 16vmin approx
+        container.style.setProperty('--base-scale', baseScale);
+        
+        // Apply initial scale from animation
+        const initialScale = Math.min(0.6, 16 * (window.innerWidth / 1000));
+        container.style.transform = `scale(${initialScale}) rotateY(0deg)`;
+    }
 
     // Wait for rose entrance animation to complete
     setTimeout(() => {
       isLoaded = true;
+      updateBaseScale(); // Set the base scale after animation
     }, 5500);
 
-    document.addEventListener('mousemove', (e) => {
+    function handleMove(e) {
       if (!isLoaded) return;
       
-      mouseX = e.clientX;
-      mouseY = e.clientY;
+      // Handle both touch and mouse events
+      if (e.touches) {
+        mouseX = e.touches[0].clientX;
+        mouseY = e.touches[0].clientY;
+      } else {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      }
       
       const rect = container.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
       
-      const deltaX = (mouseX - centerX) / 50;
-      const deltaY = (mouseY - centerY) / 50;
+      // Reduce sensitivity for smoother movement
+      const deltaX = (mouseX - centerX) / 80;
+      const deltaY = (mouseY - centerY) / 80;
       
-      container.style.transform = `scale(0.6) translate(${deltaX}px, ${deltaY}px)`;
-    });
+      container.style.transform = `scale(${baseScale}) translate(${deltaX}px, ${deltaY}px)`;
+    }
 
-    // Click interaction
-    container.addEventListener('click', () => {
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('touchmove', handleMove);
+
+    // Click and Touch interaction
+    function handleClick(e) {
       if (!isLoaded) return;
       
+      // Get click/tap coordinates
+      if (e.touches) {
+        mouseX = e.touches[0].clientX;
+        mouseY = e.touches[0].clientY;
+      } else {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      }
+
       container.classList.add('clicked');
       setTimeout(() => container.classList.remove('clicked'), 500);
       
@@ -618,7 +662,11 @@
       for (let i = 0; i < 10; i++) {
         createSparkle();
       }
-    });
+    }
+
+    container.addEventListener('click', handleClick);
+    container.addEventListener('touchstart', handleClick, { passive: true });
+
 
     // Start effects after loader
     setTimeout(() => {
@@ -646,7 +694,8 @@
     function createParticle() {
       const particle = document.createElement('div');
       particle.className = 'particle';
-      particle.style.left = (window.innerWidth / 2 - 100 + Math.random() * 200) + 'px';
+      // Spawn particles around the center of the screen
+      particle.style.left = (window.innerWidth / 2 - (Math.random() * 200 - 100)) + 'px';
       particle.style.bottom = '40%';
       particle.style.animationDelay = Math.random() * 2 + 's';
       particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
@@ -673,19 +722,25 @@
 
     function createSparkle() {
       const sparkle = document.createElement('div');
-      sparkle.className = 'particle';
+      sparkle.className = 'particle'; // Re-use particle class for animation
       sparkle.style.left = mouseX + 'px';
       sparkle.style.top = mouseY + 'px';
       sparkle.style.width = '6px';
       sparkle.style.height = '6px';
       sparkle.style.background = '#ff96c0';
       sparkle.style.boxShadow = '0 0 10px #ff4e85';
-      sparkle.style.position = 'fixed';
-      sparkle.style.animation = 'float 2s ease-out forwards';
+      sparkle.style.position = 'fixed'; // Use fixed to position at click coords
+      sparkle.style.animation = 'float 2s ease-out forwards'; // Use float animation
+      sparkle.style.zIndex = '99';
       document.body.appendChild(sparkle);
       
       setTimeout(() => sparkle.remove(), 2000);
     }
+
+    // Update scale on resize
+    window.addEventListener('resize', updateBaseScale);
+    // Call once on load after timeout to set initial scale
+    setTimeout(updateBaseScale, 5500);
   </script>
 </body>
 </html>
